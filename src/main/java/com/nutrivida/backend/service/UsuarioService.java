@@ -2,6 +2,7 @@ package com.nutrivida.backend.service;
 
 import com.nutrivida.backend.model.Usuario;
 import com.nutrivida.backend.repository.UsuarioRepository;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -13,9 +14,11 @@ public class UsuarioService {
     private static final String ROL_POR_DEFECTO = "CLIENTE";
 
     private final UsuarioRepository usuarioRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UsuarioService(UsuarioRepository usuarioRepository) {
+    public UsuarioService(UsuarioRepository usuarioRepository, PasswordEncoder passwordEncoder) {
         this.usuarioRepository = usuarioRepository;
+        this.passwordEncoder = passwordEncoder;
     }
 
     public List<Usuario> listarTodos() {
@@ -31,6 +34,7 @@ public class UsuarioService {
         if (usuario.getRol() == null) {
             usuario.setRol(ROL_POR_DEFECTO);
         }
+        usuario.setContrasena(passwordEncoder.encode(usuario.getContrasena()));
         return usuarioRepository.save(usuario);
     }
 

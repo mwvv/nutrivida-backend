@@ -1,5 +1,6 @@
 package com.nutrivida.backend.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
@@ -35,7 +36,9 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 100)
     private String correo;
 
-    @Column(nullable = false, length = 10)
+    // Hash BCrypt (60 caracteres; columna ampliada a 100 en V3). Se recibe en el JSON pero nunca se devuelve.
+    @JsonProperty(access = JsonProperty.Access.WRITE_ONLY)
+    @Column(nullable = false, length = 100)
     private String contrasena;
 
     @Column(name = "fecha_nacimiento")
