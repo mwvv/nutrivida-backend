@@ -1,11 +1,14 @@
 package com.nutrivida.backend.controller;
 
+import com.nutrivida.backend.assembler.UsuarioModelAssembler;
 import com.nutrivida.backend.model.Usuario;
 import com.nutrivida.backend.service.UsuarioService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,17 +20,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @Tag(name = "Usuarios", description = "Gestión de usuarios")
 @RequestMapping("/api/v1/usuarios")
 public class UsuarioController {
 
     private final UsuarioService usuarioService;
+    private final UsuarioModelAssembler usuarioModelAssembler;
 
-    public UsuarioController(UsuarioService usuarioService) {
+    public UsuarioController(UsuarioService usuarioService, UsuarioModelAssembler usuarioModelAssembler) {
         this.usuarioService = usuarioService;
+        this.usuarioModelAssembler = usuarioModelAssembler;
     }
 
     @Operation(summary = "Listar todos los usuarios")
@@ -35,8 +38,8 @@ public class UsuarioController {
             @ApiResponse(responseCode = "200", description = "Lista de usuarios")
     })
     @GetMapping
-    public List<Usuario> listar() {
-        return usuarioService.listarTodos();
+    public CollectionModel<EntityModel<Usuario>> listar() {
+        return usuarioModelAssembler.toCollectionModel(usuarioService.listarTodos());
     }
 
     @Operation(summary = "Obtener un usuario por ID")
@@ -45,8 +48,9 @@ public class UsuarioController {
             @ApiResponse(responseCode = "404", description = "Usuario no encontrado")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Usuario> buscar(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<Usuario>> buscar(@PathVariable Long id) {
         return usuarioService.buscarPorId(id)
+                .map(usuarioModelAssembler::toModel)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

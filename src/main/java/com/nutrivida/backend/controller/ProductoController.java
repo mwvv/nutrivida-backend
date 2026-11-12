@@ -1,11 +1,14 @@
 package com.nutrivida.backend.controller;
 
+import com.nutrivida.backend.assembler.ProductoModelAssembler;
 import com.nutrivida.backend.model.Producto;
 import com.nutrivida.backend.service.ProductoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,17 +20,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @Tag(name = "Productos", description = "Gestión del catálogo de productos")
 @RequestMapping("/api/v1/productos")
 public class ProductoController {
 
     private final ProductoService productoService;
+    private final ProductoModelAssembler productoModelAssembler;
 
-    public ProductoController(ProductoService productoService) {
+    public ProductoController(ProductoService productoService, ProductoModelAssembler productoModelAssembler) {
         this.productoService = productoService;
+        this.productoModelAssembler = productoModelAssembler;
     }
 
     @Operation(summary = "Listar todos los productos")
@@ -35,8 +38,8 @@ public class ProductoController {
             @ApiResponse(responseCode = "200", description = "Lista de productos")
     })
     @GetMapping
-    public List<Producto> listar() {
-        return productoService.listarTodos();
+    public CollectionModel<EntityModel<Producto>> listar() {
+        return productoModelAssembler.toCollectionModel(productoService.listarTodos());
     }
 
     @Operation(summary = "Obtener un producto por ID")
@@ -45,8 +48,9 @@ public class ProductoController {
             @ApiResponse(responseCode = "404", description = "Producto no encontrado")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Producto> buscar(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<Producto>> buscar(@PathVariable Long id) {
         return productoService.buscarPorId(id)
+                .map(productoModelAssembler::toModel)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }

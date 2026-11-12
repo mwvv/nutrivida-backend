@@ -1,11 +1,14 @@
 package com.nutrivida.backend.controller;
 
+import com.nutrivida.backend.assembler.VentaModelAssembler;
 import com.nutrivida.backend.model.Venta;
 import com.nutrivida.backend.service.VentaService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -17,17 +20,17 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
-import java.util.List;
-
 @RestController
 @Tag(name = "Ventas", description = "Registro y gestión de ventas")
 @RequestMapping("/api/v1/ventas")
 public class VentaController {
 
     private final VentaService ventaService;
+    private final VentaModelAssembler ventaModelAssembler;
 
-    public VentaController(VentaService ventaService) {
+    public VentaController(VentaService ventaService, VentaModelAssembler ventaModelAssembler) {
         this.ventaService = ventaService;
+        this.ventaModelAssembler = ventaModelAssembler;
     }
 
     @Operation(summary = "Listar todas las ventas")
@@ -35,8 +38,8 @@ public class VentaController {
             @ApiResponse(responseCode = "200", description = "Lista de ventas")
     })
     @GetMapping
-    public List<Venta> listar() {
-        return ventaService.listarTodos();
+    public CollectionModel<EntityModel<Venta>> listar() {
+        return ventaModelAssembler.toCollectionModel(ventaService.listarTodos());
     }
 
     @Operation(summary = "Obtener una venta por ID")
@@ -45,8 +48,9 @@ public class VentaController {
             @ApiResponse(responseCode = "404", description = "Venta no encontrada")
     })
     @GetMapping("/{id}")
-    public ResponseEntity<Venta> buscar(@PathVariable Long id) {
+    public ResponseEntity<EntityModel<Venta>> buscar(@PathVariable Long id) {
         return ventaService.buscarPorId(id)
+                .map(ventaModelAssembler::toModel)
                 .map(ResponseEntity::ok)
                 .orElse(ResponseEntity.notFound().build());
     }
