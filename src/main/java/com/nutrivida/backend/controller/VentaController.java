@@ -2,6 +2,10 @@ package com.nutrivida.backend.controller;
 
 import com.nutrivida.backend.model.Venta;
 import com.nutrivida.backend.service.VentaService;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.responses.ApiResponse;
+import io.swagger.v3.oas.annotations.responses.ApiResponses;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -16,6 +20,7 @@ import org.springframework.web.bind.annotation.RestController;
 import java.util.List;
 
 @RestController
+@Tag(name = "Ventas", description = "Registro y gestión de ventas")
 @RequestMapping("/api/v1/ventas")
 public class VentaController {
 
@@ -25,11 +30,20 @@ public class VentaController {
         this.ventaService = ventaService;
     }
 
+    @Operation(summary = "Listar todas las ventas")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Lista de ventas")
+    })
     @GetMapping
     public List<Venta> listar() {
         return ventaService.listarTodos();
     }
 
+    @Operation(summary = "Obtener una venta por ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Venta encontrada"),
+            @ApiResponse(responseCode = "404", description = "Venta no encontrada")
+    })
     @GetMapping("/{id}")
     public ResponseEntity<Venta> buscar(@PathVariable Long id) {
         return ventaService.buscarPorId(id)
@@ -37,11 +51,20 @@ public class VentaController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Crear una nueva venta")
+    @ApiResponses({
+            @ApiResponse(responseCode = "201", description = "Venta creada")
+    })
     @PostMapping
     public ResponseEntity<Venta> crear(@RequestBody Venta venta) {
         return ResponseEntity.status(HttpStatus.CREATED).body(ventaService.guardar(venta));
     }
 
+    @Operation(summary = "Actualizar una venta existente")
+    @ApiResponses({
+            @ApiResponse(responseCode = "200", description = "Venta actualizada"),
+            @ApiResponse(responseCode = "404", description = "Venta no encontrada")
+    })
     @PutMapping("/{id}")
     public ResponseEntity<Venta> actualizar(@PathVariable Long id, @RequestBody Venta venta) {
         return ventaService.actualizar(id, venta)
@@ -49,6 +72,11 @@ public class VentaController {
                 .orElse(ResponseEntity.notFound().build());
     }
 
+    @Operation(summary = "Eliminar una venta por ID")
+    @ApiResponses({
+            @ApiResponse(responseCode = "204", description = "Venta eliminada"),
+            @ApiResponse(responseCode = "404", description = "Venta no encontrada")
+    })
     @DeleteMapping("/{id}")
     public ResponseEntity<Void> eliminar(@PathVariable Long id) {
         return ventaService.eliminar(id)
