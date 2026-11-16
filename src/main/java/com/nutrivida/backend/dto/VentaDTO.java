@@ -1,5 +1,6 @@
 package com.nutrivida.backend.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
 import lombok.Data;
@@ -9,6 +10,7 @@ import java.time.LocalDate;
 public class VentaDTO {
 
     @Data
+    @Schema(name = "VentaRequest")
     public static class Request {
         // Opcional: si no viene, se usa la fecha de hoy
         private LocalDate fecha;
@@ -22,6 +24,7 @@ public class VentaDTO {
     }
 
     @Data
+    @Schema(name = "VentaResponse")
     public static class Response {
         private Long id;
         private LocalDate fecha;

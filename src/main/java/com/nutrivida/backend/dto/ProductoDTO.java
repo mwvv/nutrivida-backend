@@ -1,5 +1,6 @@
 package com.nutrivida.backend.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Max;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotBlank;
@@ -11,6 +12,7 @@ import lombok.Data;
 public class ProductoDTO {
 
     @Data
+    @Schema(name = "ProductoRequest")
     public static class Request {
         @NotBlank(message = "El código es obligatorio")
         @Size(max = 60, message = "El código no puede superar los 60 caracteres")
@@ -42,6 +44,7 @@ public class ProductoDTO {
     }
 
     @Data
+    @Schema(name = "ProductoResponse")
     public static class Response {
         private Long id;
         private String codigo;

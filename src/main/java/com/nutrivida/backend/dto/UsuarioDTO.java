@@ -1,5 +1,6 @@
 package com.nutrivida.backend.dto;
 
+import io.swagger.v3.oas.annotations.media.Schema;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.NotNull;
@@ -13,6 +14,7 @@ import java.time.LocalDate;
 public class UsuarioDTO {
 
     @Data
+    @Schema(name = "UsuarioRequest")
     public static class Request {
         @NotBlank(message = "El RUN es obligatorio")
         @Size(min = 7, max = 9, message = "El RUN debe tener entre 7 y 9 caracteres")
@@ -62,6 +64,7 @@ public class UsuarioDTO {
     }
 
     @Data
+    @Schema(name = "UsuarioResponse")
     public static class Response {
         private Long id;
         private String run;
