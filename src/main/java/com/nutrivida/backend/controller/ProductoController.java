@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +21,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Tag(name = "Productos", description = "Operaciones relacionadas con la gestión de productos y servicios")
 @RestController
@@ -36,8 +41,12 @@ public class ProductoController {
         @ApiResponse(responseCode = "200", description = "Lista obtenida correctamente")
     })
     @GetMapping
-    public List<ProductoDTO.Response> listar() {
-        return productoService.listarTodos();
+    public CollectionModel<EntityModel<ProductoDTO.Response>> listar() {
+        List<EntityModel<ProductoDTO.Response>> productos = productoService.listarTodos().stream()
+                .map(this::toModel)
+                .toList();
+        return CollectionModel.of(productos,
+                linkTo(methodOn(ProductoController.class).listar()).withSelfRel());
     }
 
     @Operation(summary = "Obtiene un producto por su identificador", description = "Retorna la información de un producto específico según su ID")
@@ -46,8 +55,10 @@ public class ProductoController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado")
     })
     @GetMapping("/{id}")
-    public ProductoDTO.Response buscar(@PathVariable Long id) {
-        return productoService.buscarPorId(id).orElseThrow();
+    public EntityModel<ProductoDTO.Response> buscar(@PathVariable Long id) {
+        ProductoDTO.Response producto = productoService.buscarPorId(id).orElseThrow();
+        return toModel(producto).add(
+                linkTo(methodOn(ProductoController.class).listar()).withRel("todos-los-productos"));
     }
 
     @Operation(summary = "Registra un nuevo producto", description = "Permite crear un nuevo producto o servicio en el sistema")
@@ -84,5 +95,10 @@ public class ProductoController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable Long id) {
         productoService.eliminar(id);
+    }
+
+    private EntityModel<ProductoDTO.Response> toModel(ProductoDTO.Response producto) {
+        return EntityModel.of(producto,
+                linkTo(methodOn(ProductoController.class).buscar(producto.getId())).withSelfRel());
     }
 }

@@ -7,6 +7,8 @@ import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
+import org.springframework.hateoas.CollectionModel;
+import org.springframework.hateoas.EntityModel;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +21,9 @@ import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.linkTo;
+import static org.springframework.hateoas.server.mvc.WebMvcLinkBuilder.methodOn;
 
 @Tag(name = "Ventas", description = "Operaciones relacionadas con la gestión de ventas")
 @RestController
@@ -36,8 +41,12 @@ public class VentaController {
         @ApiResponse(responseCode = "200", description = "Lista obtenida correctamente")
     })
     @GetMapping
-    public List<VentaDTO.Response> listar() {
-        return ventaService.listarTodos();
+    public CollectionModel<EntityModel<VentaDTO.Response>> listar() {
+        List<EntityModel<VentaDTO.Response>> ventas = ventaService.listarTodos().stream()
+                .map(this::toModel)
+                .toList();
+        return CollectionModel.of(ventas,
+                linkTo(methodOn(VentaController.class).listar()).withSelfRel());
     }
 
     @Operation(summary = "Obtiene una venta por su identificador", description = "Retorna la información de una venta específica según su ID")
@@ -46,8 +55,10 @@ public class VentaController {
         @ApiResponse(responseCode = "404", description = "Recurso no encontrado")
     })
     @GetMapping("/{id}")
-    public VentaDTO.Response buscar(@PathVariable Long id) {
-        return ventaService.buscarPorId(id).orElseThrow();
+    public EntityModel<VentaDTO.Response> buscar(@PathVariable Long id) {
+        VentaDTO.Response venta = ventaService.buscarPorId(id).orElseThrow();
+        return toModel(venta).add(
+                linkTo(methodOn(VentaController.class).listar()).withRel("todas-las-ventas"));
     }
 
     @Operation(summary = "Registra una nueva venta", description = "Permite crear una nueva venta; si no se indica la fecha se usa la de hoy")
@@ -84,5 +95,10 @@ public class VentaController {
     @ResponseStatus(HttpStatus.NO_CONTENT)
     public void eliminar(@PathVariable Long id) {
         ventaService.eliminar(id);
+    }
+
+    private EntityModel<VentaDTO.Response> toModel(VentaDTO.Response venta) {
+        return EntityModel.of(venta,
+                linkTo(methodOn(VentaController.class).buscar(venta.getId())).withSelfRel());
     }
 }
