@@ -35,7 +35,8 @@ public class Usuario {
     @Column(nullable = false, unique = true, length = 100)
     private String correo;
 
-    @Column(nullable = false, length = 10)
+    // Guarda el hash BCrypt (60 caracteres), nunca la contraseña en texto plano
+    @Column(nullable = false, length = 100)
     private String contrasena;
 
     @Column(name = "fecha_nacimiento")
