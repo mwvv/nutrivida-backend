@@ -1,9 +1,9 @@
 package com.nutrivida.backend.controller;
 
-import com.nutrivida.backend.model.Venta;
+import com.nutrivida.backend.dto.VentaDTO;
 import com.nutrivida.backend.service.VentaService;
+import jakarta.validation.Valid;
 import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
@@ -11,6 +11,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
@@ -26,33 +27,29 @@ public class VentaController {
     }
 
     @GetMapping
-    public List<Venta> listar() {
+    public List<VentaDTO.Response> listar() {
         return ventaService.listarTodos();
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<Venta> buscar(@PathVariable Long id) {
-        return ventaService.buscarPorId(id)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public VentaDTO.Response buscar(@PathVariable Long id) {
+        return ventaService.buscarPorId(id).orElseThrow();
     }
 
     @PostMapping
-    public ResponseEntity<Venta> crear(@RequestBody Venta venta) {
-        return ResponseEntity.status(HttpStatus.CREATED).body(ventaService.guardar(venta));
+    @ResponseStatus(HttpStatus.CREATED)
+    public VentaDTO.Response crear(@Valid @RequestBody VentaDTO.Request dto) {
+        return ventaService.guardar(dto);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<Venta> actualizar(@PathVariable Long id, @RequestBody Venta venta) {
-        return ventaService.actualizar(id, venta)
-                .map(ResponseEntity::ok)
-                .orElse(ResponseEntity.notFound().build());
+    public VentaDTO.Response actualizar(@PathVariable Long id, @Valid @RequestBody VentaDTO.Request dto) {
+        return ventaService.actualizar(id, dto).orElseThrow();
     }
 
     @DeleteMapping("/{id}")
-    public ResponseEntity<Void> eliminar(@PathVariable Long id) {
-        return ventaService.eliminar(id)
-                ? ResponseEntity.noContent().build()
-                : ResponseEntity.notFound().build();
+    @ResponseStatus(HttpStatus.NO_CONTENT)
+    public void eliminar(@PathVariable Long id) {
+        ventaService.eliminar(id);
     }
 }
